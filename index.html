@@ -1,0 +1,1078 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Petualangan Hiu Lucu - Lima Perintah Gereja</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Fredoka+One&family=Quicksand:wght@500;600;700&display=swap" rel="stylesheet">
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <style>
+        body {
+            font-family: 'Quicksand', sans-serif;
+            user-select: none;
+            -webkit-user-select: none;
+            touch-action: manipulation;
+        }
+        .font-game {
+            font-family: 'Fredoka One', cursive;
+        }
+        @keyframes float {
+            0%, 100% { transform: translateY(0px); }
+            50% { transform: translateY(-10px); }
+        }
+        .animate-float {
+            animation: float 3s ease-in-out infinite;
+        }
+    </style>
+</head>
+<body class="bg-slate-900 text-white min-h-screen flex flex-col justify-between items-center overflow-x-hidden">
+
+    <!-- Header Bar -->
+    <header class="w-full bg-cyan-900/80 backdrop-blur border-b border-cyan-500/30 px-4 py-3 flex justify-between items-center z-10 shadow-lg">
+        <div class="flex items-center space-x-2">
+            <span class="text-3xl">🦈</span>
+            <h1 class="text-xl md:text-2xl font-game text-yellow-300 tracking-wide drop-shadow">Hiu Cerdas: 5 Perintah Gereja</h1>
+        </div>
+        <div class="flex items-center space-x-3">
+            <button onclick="toggleMute()" id="mute-btn" class="bg-cyan-700/60 hover:bg-cyan-600 p-2 rounded-xl transition flex items-center justify-center border border-cyan-400/30">
+                <i data-lucide="volume-2" class="w-5 h-5 text-yellow-300"></i>
+            </button>
+            <button onclick="openInfoModal()" class="bg-cyan-700/60 hover:bg-cyan-600 p-2 rounded-xl transition flex items-center justify-center border border-cyan-400/30">
+                <i data-lucide="book-open" class="w-5 h-5 text-yellow-300"></i>
+            </button>
+        </div>
+    </header>
+
+    <!-- Main Game Container -->
+    <main class="relative w-full max-w-4xl flex-1 flex flex-col justify-center items-center p-2 md:p-4 my-auto">
+        
+        <!-- Score, Lives, and Progress Bar -->
+        <div class="w-full flex flex-wrap justify-between items-center mb-2 px-2 gap-2">
+            <div class="flex items-center space-x-2 md:space-x-4">
+                <div class="bg-cyan-950/80 border border-cyan-500/40 px-3 py-1.5 rounded-full flex items-center space-x-2">
+                    <span class="text-xl">⭐</span>
+                    <span class="font-game text-base md:text-lg text-yellow-300" id="score-text">Skor: 0</span>
+                </div>
+                <div class="bg-cyan-950/80 border border-cyan-500/40 px-3 py-1.5 rounded-full flex items-center space-x-1" id="lives-container">
+                    <span class="text-lg">❤️</span>
+                    <span class="text-lg">❤️</span>
+                    <span class="text-lg">❤️</span>
+                </div>
+                <div class="bg-cyan-950/80 border border-cyan-500/40 px-3 py-1.5 rounded-full flex items-center space-x-2">
+                    <span class="text-xl">🦪</span>
+                    <span class="font-game text-base md:text-lg text-cyan-300" id="collected-text">Kerang: 0/5</span>
+                </div>
+            </div>
+            <div class="bg-cyan-950/80 border border-cyan-500/40 px-3 py-1.5 rounded-full flex items-center space-x-1">
+                <span class="text-xs md:text-sm font-semibold text-slate-300">Soal Ke:</span>
+                <span id="target-command-badge" class="font-game text-yellow-400 text-lg px-2 py-0.5 bg-yellow-500/20 rounded-full">1</span>
+            </div>
+        </div>
+
+        <!-- Canvas Game Viewport -->
+        <div class="relative w-full aspect-[16/9] max-h-[70vh] rounded-2xl overflow-hidden border-4 border-cyan-400/50 shadow-2xl bg-gradient-to-b from-sky-400 via-cyan-700 to-blue-950">
+            <canvas id="gameCanvas" class="w-full h-full block cursor-pointer"></canvas>
+
+            <!-- Overlay Start Screen -->
+            <div id="start-screen" class="absolute inset-0 bg-blue-950/85 backdrop-blur-sm flex flex-col justify-center items-center p-6 text-center z-20">
+                <div class="animate-float mb-4 text-6xl">🦈🌊</div>
+                <h2 class="text-3xl md:text-5xl font-game text-yellow-300 mb-2 drop-shadow-md">Petualangan Bawah Laut</h2>
+                <p class="text-cyan-100 text-sm md:text-base max-w-md mb-6 leading-relaxed">
+                    Bantu Hiu Lucu berenang bebas mencari kerang kuis <strong class="text-yellow-300">Lima Perintah Gereja Katolik</strong>! Waspada terhadap <strong class="text-yellow-400">Belut Listrik ⚡</strong> dan dapatkan nilai sempurna 100!
+                </p>
+                <button onclick="startGame()" class="font-game bg-gradient-to-r from-yellow-400 to-amber-500 hover:from-yellow-300 hover:to-amber-400 text-blue-950 text-xl px-8 py-3 rounded-full shadow-lg transform transition active:scale-95 flex items-center space-x-2">
+                    <span>Mulai Petualangan</span>
+                    <i data-lucide="play" class="w-6 h-6 fill-current"></i>
+                </button>
+            </div>
+
+            <!-- Overlay Quiz Screen -->
+            <div id="quiz-modal" class="hidden absolute inset-0 bg-blue-950/95 backdrop-blur-md p-4 md:p-6 flex flex-col justify-between items-center z-30 transition-all">
+                <div class="w-full text-center">
+                    <span class="bg-yellow-400/20 border border-yellow-400/50 text-yellow-300 text-xs md:text-sm font-semibold px-3 py-1 rounded-full inline-block mb-2" id="quiz-category">
+                        Soal Perintah Gereja
+                    </span>
+                    <h3 id="quiz-question" class="text-lg md:text-2xl font-bold text-white max-w-xl mx-auto mt-1 leading-snug">
+                        Pertanyaan kuis...
+                    </h3>
+                </div>
+
+                <div id="quiz-options" class="w-full max-w-xl grid grid-cols-1 md:grid-cols-2 gap-3 my-auto">
+                    <!-- Dynamic option buttons injected here -->
+                </div>
+
+                <div id="quiz-feedback" class="h-8 font-bold text-center text-lg"></div>
+            </div>
+
+            <!-- Overlay Game Over Screen -->
+            <div id="gameover-screen" class="hidden absolute inset-0 bg-rose-950/90 backdrop-blur-md flex flex-col justify-center items-center p-6 text-center z-40">
+                <div class="text-6xl mb-2">💥</div>
+                <h2 class="text-3xl md:text-4xl font-game text-rose-300 mb-2">Awas Rintangan!</h2>
+                <p class="text-slate-200 text-sm md:text-base max-w-md mb-6">
+                    Nyawa Hiu Lucu telah habis. Jangan menyerah, ayo coba lagi petualangannya!
+                </p>
+                <button onclick="startGame()" class="font-game bg-yellow-400 hover:bg-yellow-300 text-blue-950 px-8 py-3 rounded-full shadow-lg transition flex items-center space-x-2">
+                    <i data-lucide="rotate-ccw" class="w-6 h-6"></i>
+                    <span>Coba Lagi</span>
+                </button>
+            </div>
+
+            <!-- Overlay Win/Victory Screen -->
+            <div id="win-screen" class="hidden absolute inset-0 bg-blue-950/90 backdrop-blur-md flex flex-col justify-center items-center p-6 text-center z-40">
+                <div class="text-6xl mb-2 animate-bounce">🏆</div>
+                <h2 class="text-3xl md:text-4xl font-game text-yellow-300 mb-2">Selamat! Kamu Hebat!</h2>
+                <p class="text-cyan-100 text-sm md:text-base max-w-md mb-4">
+                    Kamu telah berhasil melewati rintangan dan menjawab seluruh kuis Lima Perintah Gereja Katolik!
+                </p>
+                <div class="bg-cyan-900/60 border border-cyan-400/40 p-4 rounded-xl mb-6 min-w-[240px]">
+                    <div class="text-sm text-cyan-300">Total Skor Akhir:</div>
+                    <div class="text-3xl font-game text-yellow-300" id="final-score">100</div>
+                </div>
+                <div class="flex space-x-3">
+                    <button onclick="restartGame()" class="font-game bg-yellow-400 hover:bg-yellow-300 text-blue-950 px-6 py-2.5 rounded-full shadow-lg transition flex items-center space-x-2">
+                        <i data-lucide="rotate-ccw" class="w-5 h-5"></i>
+                        <span>Main Lagi</span>
+                    </button>
+                    <button onclick="openInfoModal()" class="font-game bg-cyan-700 hover:bg-cyan-600 text-white px-6 py-2.5 rounded-full shadow-lg transition flex items-center space-x-2">
+                        <i data-lucide="book" class="w-5 h-5"></i>
+                        <span>Baca Ringkasan</span>
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Controls Guide / Mobile D-Pad -->
+        <div class="w-full mt-3 flex flex-col md:flex-row justify-between items-center text-xs text-cyan-200/80 gap-3">
+            <div class="flex items-center space-x-2">
+                <span class="bg-cyan-800/60 px-2 py-1 rounded font-semibold text-yellow-300">Gunakan WASD / Panah / Touch Drag</span>
+                <span>Kendalikan Hiu bergerak bebas 4 arah & hindari Belut Listrik ⚡!</span>
+            </div>
+
+            <!-- Mobile Touch D-Pad -->
+            <div class="flex md:hidden items-center justify-center gap-2 my-1">
+                <div class="grid grid-cols-3 gap-1">
+                    <div></div>
+                    <button id="btn-up" class="bg-cyan-800/90 active:bg-cyan-600 px-4 py-2 rounded-lg border border-cyan-400/40 text-sm font-bold text-yellow-300">▲</button>
+                    <div></div>
+                    <button id="btn-left" class="bg-cyan-800/90 active:bg-cyan-600 px-4 py-2 rounded-lg border border-cyan-400/40 text-sm font-bold text-yellow-300">◄</button>
+                    <button id="btn-down" class="bg-cyan-800/90 active:bg-cyan-600 px-4 py-2 rounded-lg border border-cyan-400/40 text-sm font-bold text-yellow-300">▼</button>
+                    <button id="btn-right" class="bg-cyan-800/90 active:bg-cyan-600 px-4 py-2 rounded-lg border border-cyan-400/40 text-sm font-bold text-yellow-300">►</button>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- Info / Study Modal -->
+    <div id="info-modal" class="hidden fixed inset-0 bg-black/75 backdrop-blur-sm z-50 flex justify-center items-center p-4">
+        <div class="bg-slate-900 border border-cyan-500/40 rounded-2xl max-w-2xl w-full p-6 text-slate-100 max-h-[90vh] overflow-y-auto relative shadow-2xl">
+            <button onclick="closeInfoModal()" class="absolute top-4 right-4 text-slate-400 hover:text-white p-1">
+                <i data-lucide="x" class="w-6 h-6"></i>
+            </button>
+            
+            <div class="flex items-center space-x-3 mb-4">
+                <span class="text-3xl">⛪</span>
+                <h2 class="text-2xl font-game text-yellow-300">5 Perintah Gereja Katolik</h2>
+            </div>
+
+            <div class="space-y-3 text-sm md:text-base">
+                <div class="bg-cyan-950/60 p-3.5 rounded-xl border-l-4 border-yellow-400">
+                    <span class="font-bold text-yellow-300 block mb-1">Perintah Ke-1</span>
+                    <p>Rayakan hari raya yang disamakan dengan hari Minggu.</p>
+                </div>
+                <div class="bg-cyan-950/60 p-3.5 rounded-xl border-l-4 border-yellow-400">
+                    <span class="font-bold text-yellow-300 block mb-1">Perintah Ke-2</span>
+                    <p>Ikutilah perayaan Ekaristi pada hari Minggu dan pada hari raya yang diwajibkan; dan janganlah melakukan pekerjaan yang dilarang pada hari itu.</p>
+                </div>
+                <div class="bg-cyan-950/60 p-3.5 rounded-xl border-l-4 border-yellow-400">
+                    <span class="font-bold text-yellow-300 block mb-1">Perintah Ke-3</span>
+                    <p>Berpuasa dan berpantanglah pada hari yang ditentukan.</p>
+                </div>
+                <div class="bg-cyan-950/60 p-3.5 rounded-xl border-l-4 border-yellow-400">
+                    <span class="font-bold text-yellow-300 block mb-1">Perintah Ke-4</span>
+                    <p>Mengaku dosalah sekurang-kurangnya sekali setahun.</p>
+                </div>
+                <div class="bg-cyan-950/60 p-3.5 rounded-xl border-l-4 border-yellow-400">
+                    <span class="font-bold text-yellow-300 block mb-1">Perintah Ke-5</span>
+                    <p>Sambutlah Tubuh Tuhan pada Masa Paskah.</p>
+                </div>
+            </div>
+
+            <div class="mt-6 text-center">
+                <button onclick="closeInfoModal()" class="font-game bg-cyan-600 hover:bg-cyan-500 text-white px-6 py-2 rounded-full transition">
+                    Tutup & Lanjutkan Main
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        lucide.createIcons();
+
+        // 5 Commands Data Content
+        const COMMANDS_DATA = [
+            {
+                num: 1,
+                text: "Rayakan hari raya yang disamakan dengan hari Minggu.",
+                question: "Apa isi dari PERINTAH GEREJA KE-1?",
+                options: [
+                    "Rayakan hari raya yang disamakan dengan hari Minggu.",
+                    "Berpuasa dan berpantanglah pada hari yang ditentukan.",
+                    "Mengaku dosalah sekurang-kurangnya sekali setahun.",
+                    "Sambutlah Tubuh Tuhan pada Masa Paskah."
+                ],
+                correct: 0
+            },
+            {
+                num: 2,
+                text: "Ikutilah perayaan Ekaristi pada hari Minggu dan pada hari raya yang diwajibkan; dan janganlah melakukan pekerjaan yang dilarang pada hari itu.",
+                question: "Berikut ini yang merupakan isi PERINTAH GEREJA KE-2 adalah...",
+                options: [
+                    "Sambutlah Tubuh Tuhan pada Masa Paskah.",
+                    "Ikutilah perayaan Ekaristi pada hari Minggu dan pada hari raya yang diwajibkan; dan janganlah melakukan pekerjaan yang dilarang pada hari itu.",
+                    "Berpuasa dan berpantanglah pada hari Rabu Abu dan Jumat Agung.",
+                    "Mengaku dosalah sekurang-kurangnya sekali setahun."
+                ],
+                correct: 1
+            },
+            {
+                num: 3,
+                text: "Berpuasa dan berpantanglah pada hari yang ditentukan.",
+                question: "Sikap keprihatinan dan pertobatan Katolik diwujudkan dalam PERINTAH GEREJA KE-3, yaitu...",
+                options: [
+                    "Rayakan hari raya yang disamakan dengan hari Minggu.",
+                    "Mengaku dosa sekurang-kurangnya sekali setahun.",
+                    "Berpuasa dan berpantanglah pada hari yang ditentukan.",
+                    "Menyumbang dana untuk gereja secara sukarela."
+                ],
+                correct: 2
+            },
+            {
+                num: 4,
+                text: "Mengaku dosalah sekurang-kurangnya sekali setahun.",
+                question: "Berapa kali sekurang-kurangnya umat Katolik wajib MENGAKU DOSA menurut Perintah Gereja Ke-4?",
+                options: [
+                    "Sekurang-kurangnya seminggu sekali.",
+                    "Sekurang-kurangnya sebulan sekali.",
+                    "Sekurang-kurangnya sepuluh kali setahun.",
+                    "Sekurang-kurangnya sekali setahun."
+                ],
+                correct: 3
+            },
+            {
+                num: 5,
+                text: "Sambutlah Tubuh Tuhan pada Masa Paskah.",
+                question: "Kapan umat Katolik diwajibkan menyambut Tubuh Tuhan (Ekaristi/Komuni) menurut PERINTAH GEREJA KE-5?",
+                options: [
+                    "Pada Masa Paskah.",
+                    "Pada Masa Adven saja.",
+                    "Setiap hari ulang tahun.",
+                    "Hanya saat hari libur nasional."
+                ],
+                correct: 0
+            }
+        ];
+
+        // Web Audio Synthesizer
+        const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+        let isMuted = false;
+
+        function playSound(type) {
+            if (isMuted || !audioCtx) return;
+            try {
+                const osc = audioCtx.createOscillator();
+                const gain = audioCtx.createGain();
+                osc.connect(gain);
+                gain.connect(audioCtx.destination);
+                const now = audioCtx.currentTime;
+
+                if (type === 'collect') {
+                    osc.type = 'sine';
+                    osc.frequency.setValueAtTime(523.25, now);
+                    osc.frequency.exponentialRampToValueAtTime(880, now + 0.15);
+                    gain.gain.setValueAtTime(0.2, now);
+                    gain.gain.exponentialRampToValueAtTime(0.01, now + 0.15);
+                    osc.start(now);
+                    osc.stop(now + 0.15);
+                } else if (type === 'hit') {
+                    osc.type = 'sawtooth';
+                    osc.frequency.setValueAtTime(150, now);
+                    osc.frequency.linearRampToValueAtTime(60, now + 0.3);
+                    gain.gain.setValueAtTime(0.3, now);
+                    gain.gain.exponentialRampToValueAtTime(0.01, now + 0.3);
+                    osc.start(now);
+                    osc.stop(now + 0.3);
+                } else if (type === 'correct') {
+                    osc.type = 'triangle';
+                    osc.frequency.setValueAtTime(440, now);
+                    osc.frequency.setValueAtTime(554.37, now + 0.1);
+                    osc.frequency.setValueAtTime(659.25, now + 0.2);
+                    gain.gain.setValueAtTime(0.25, now);
+                    gain.gain.exponentialRampToValueAtTime(0.01, now + 0.35);
+                    osc.start(now);
+                    osc.stop(now + 0.35);
+                } else if (type === 'wrong') {
+                    osc.type = 'sawtooth';
+                    osc.frequency.setValueAtTime(220, now);
+                    osc.frequency.exponentialRampToValueAtTime(110, now + 0.25);
+                    gain.gain.setValueAtTime(0.2, now);
+                    gain.gain.exponentialRampToValueAtTime(0.01, now + 0.25);
+                    osc.start(now);
+                    osc.stop(now + 0.25);
+                }
+            } catch (e) {
+                console.error(e);
+            }
+        }
+
+        function toggleMute() {
+            isMuted = !isMuted;
+            const btn = document.getElementById('mute-btn');
+            btn.innerHTML = isMuted 
+                ? '<i data-lucide="volume-x" class="w-5 h-5 text-slate-400"></i>' 
+                : '<i data-lucide="volume-2" class="w-5 h-5 text-yellow-300"></i>';
+            lucide.createIcons();
+        }
+
+        const canvas = document.getElementById('gameCanvas');
+        const ctx = canvas.getContext('2d');
+
+        function resizeCanvas() {
+            canvas.width = canvas.parentElement.clientWidth;
+            canvas.height = canvas.parentElement.clientHeight;
+        }
+        window.addEventListener('resize', resizeCanvas);
+        resizeCanvas();
+
+        // Game State Variables
+        let isGameRunning = false;
+        let isQuizActive = false;
+        let currentCommandIdx = 0;
+        let score = 0;
+        let lives = 3;
+        let collectedCount = 0;
+
+        // Player (Shark) Object - 4-Way Free Movement
+        const shark = {
+            x: 80,
+            y: 150,
+            width: 70,
+            height: 40,
+            speed: 4.5,
+            targetX: undefined,
+            targetY: undefined,
+            invincibleTimer: 0,
+            tailAngle: 0
+        };
+
+        // Environment & Obstacles
+        let bubbles = [];
+        let seaweeds = [];
+        let currentShell = null;
+        let octopuses = [];
+        let fishSwarms = [];
+        let electricEels = [];
+
+        // Key Listeners
+        const keys = {};
+        window.addEventListener('keydown', (e) => { keys[e.code] = true; });
+        window.addEventListener('keyup', (e) => { keys[e.code] = false; });
+
+        // Touch Drag Control
+        canvas.addEventListener('touchmove', (e) => {
+            e.preventDefault();
+            const rect = canvas.getBoundingClientRect();
+            shark.targetX = e.touches[0].clientX - rect.left - shark.width / 2;
+            shark.targetY = e.touches[0].clientY - rect.top - shark.height / 2;
+        }, { passive: false });
+
+        // Touch D-Pad Helper Buttons
+        const setupBtn = (id, key) => {
+            const btn = document.getElementById(id);
+            if (!btn) return;
+            btn.addEventListener('touchstart', (e) => { e.preventDefault(); keys[key] = true; });
+            btn.addEventListener('touchend', (e) => { e.preventDefault(); keys[key] = false; });
+        };
+        setupBtn('btn-up', 'ArrowUp');
+        setupBtn('btn-down', 'ArrowDown');
+        setupBtn('btn-left', 'ArrowLeft');
+        setupBtn('btn-right', 'ArrowRight');
+
+        function updateLivesDisplay() {
+            const container = document.getElementById('lives-container');
+            let html = '';
+            for (let i = 0; i < 3; i++) {
+                if (i < lives) {
+                    html += '<span class="text-lg">❤️</span>';
+                } else {
+                    html += '<span class="text-lg opacity-30">🖤</span>';
+                }
+            }
+            container.innerHTML = html;
+        }
+
+        // Initialize Background Decorative Elements
+        function initEnvironment() {
+            bubbles = [];
+            for (let i = 0; i < 25; i++) {
+                bubbles.push({
+                    x: Math.random() * canvas.width,
+                    y: Math.random() * canvas.height,
+                    radius: Math.random() * 5 + 2,
+                    speed: Math.random() * 1.2 + 0.4
+                });
+            }
+
+            seaweeds = [];
+            const count = Math.floor(canvas.width / 45);
+            for (let i = 0; i <= count; i++) {
+                seaweeds.push({
+                    x: i * 45,
+                    height: Math.random() * 50 + 40,
+                    offset: Math.random() * Math.PI * 2
+                });
+            }
+        }
+
+        // Spawn Entities
+        function spawnEntities() {
+            // Target Shell Question
+            currentShell = {
+                x: canvas.width + 60,
+                y: Math.random() * (canvas.height - 120) + 40,
+                width: 40,
+                height: 40,
+                floatOffset: 0
+            };
+
+            // Octopuses (Vertical Movement)
+            octopuses = [
+                {
+                    x: canvas.width * 0.45,
+                    y: 80,
+                    radius: 22,
+                    speedY: 1.8,
+                    minY: 40,
+                    maxY: canvas.height - 80,
+                    tentaclePhase: 0
+                }
+            ];
+
+            // Small Fish Swarms
+            fishSwarms = [
+                {
+                    x: canvas.width + 100,
+                    y: canvas.height * 0.3,
+                    speed: 2.5,
+                    count: 5
+                },
+                {
+                    x: canvas.width + 280,
+                    y: canvas.height * 0.65,
+                    speed: 3.0,
+                    count: 4
+                }
+            ];
+
+            // Electric Eel
+            electricEels = [
+                {
+                    x: canvas.width + 180,
+                    y: canvas.height * 0.4,
+                    speed: 3.2,
+                    length: 70,
+                    waveOffset: 0,
+                    isElectric: true,
+                    timer: 0
+                },
+                {
+                    x: canvas.width + 380,
+                    y: canvas.height * 0.7,
+                    speed: 2.8,
+                    length: 70,
+                    waveOffset: 1.5,
+                    isElectric: true,
+                    timer: 30
+                }
+            ];
+        }
+
+        function spawnShell() {
+            currentShell = {
+                x: canvas.width + 40,
+                y: Math.random() * (canvas.height - 120) + 40,
+                width: 40,
+                height: 40,
+                floatOffset: 0
+            };
+        }
+
+        // --- DRAWING ROUTINES ---
+
+        function drawBackground() {
+            const grad = ctx.createLinearGradient(0, 0, 0, canvas.height);
+            grad.addColorStop(0, '#38bdf8');
+            grad.addColorStop(0.5, '#0284c7');
+            grad.addColorStop(1, '#092327');
+            ctx.fillStyle = grad;
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+            // Light Rays
+            ctx.fillStyle = 'rgba(255, 255, 255, 0.04)';
+            for (let i = 0; i < 5; i++) {
+                ctx.beginPath();
+                ctx.moveTo(i * 130 + 20, 0);
+                ctx.lineTo(i * 130 + 70, 0);
+                ctx.lineTo(i * 130 + 160, canvas.height);
+                ctx.lineTo(i * 130 + 60, canvas.height);
+                ctx.closePath();
+                ctx.fill();
+            }
+
+            // Bubbles
+            ctx.fillStyle = 'rgba(255, 255, 255, 0.4)';
+            ctx.strokeStyle = 'rgba(255, 255, 255, 0.6)';
+            bubbles.forEach(b => {
+                b.y -= b.speed;
+                if (b.y < -10) {
+                    b.y = canvas.height + 10;
+                    b.x = Math.random() * canvas.width;
+                }
+                ctx.beginPath();
+                ctx.arc(b.x, b.y, b.radius, 0, Math.PI * 2);
+                ctx.fill();
+                ctx.stroke();
+            });
+
+            // Sea Floor
+            ctx.fillStyle = '#eab308';
+            ctx.beginPath();
+            ctx.ellipse(canvas.width / 2, canvas.height + 10, canvas.width / 1.8, 35, 0, 0, Math.PI * 2);
+            ctx.fill();
+
+            // Seaweeds
+            ctx.strokeStyle = '#15803d';
+            ctx.lineWidth = 6;
+            ctx.lineCap = 'round';
+            const time = Date.now() * 0.003;
+            seaweeds.forEach(sw => {
+                ctx.beginPath();
+                ctx.moveTo(sw.x, canvas.height);
+                const sway = Math.sin(time + sw.offset) * 15;
+                ctx.quadraticCurveTo(sw.x + sway, canvas.height - sw.height / 2, sw.x + sway / 2, canvas.height - sw.height);
+                ctx.stroke();
+            });
+        }
+
+        function drawShark() {
+            ctx.save();
+            ctx.translate(shark.x, shark.y);
+
+            // Invincible Flash
+            if (shark.invincibleTimer > 0 && Math.floor(Date.now() / 100) % 2 === 0) {
+                ctx.globalAlpha = 0.4;
+            }
+
+            // Tail Fin Animation
+            shark.tailAngle = Math.sin(Date.now() * 0.012) * 0.25;
+            ctx.save();
+            ctx.translate(-5, 20);
+            ctx.rotate(shark.tailAngle);
+            ctx.fillStyle = '#0284c7';
+            ctx.beginPath();
+            ctx.moveTo(0, 0);
+            ctx.lineTo(-25, -15);
+            ctx.lineTo(-18, 0);
+            ctx.lineTo(-25, 15);
+            ctx.closePath();
+            ctx.fill();
+            ctx.restore();
+
+            // Main Body
+            ctx.fillStyle = '#38bdf8';
+            ctx.beginPath();
+            ctx.ellipse(35, 20, 35, 20, 0, 0, Math.PI * 2);
+            ctx.fill();
+
+            // White Belly
+            ctx.fillStyle = '#f0f9ff';
+            ctx.beginPath();
+            ctx.ellipse(35, 26, 28, 12, 0, 0, Math.PI * 2);
+            ctx.fill();
+
+            // Dorsal Fin
+            ctx.fillStyle = '#0284c7';
+            ctx.beginPath();
+            ctx.moveTo(25, 2);
+            ctx.lineTo(35, -18);
+            ctx.lineTo(48, 5);
+            ctx.closePath();
+            ctx.fill();
+
+            // Side Fin
+            ctx.beginPath();
+            ctx.moveTo(35, 22);
+            ctx.lineTo(20, 36);
+            ctx.lineTo(42, 26);
+            ctx.closePath();
+            ctx.fill();
+
+            // Eye
+            ctx.fillStyle = '#ffffff';
+            ctx.beginPath();
+            ctx.arc(52, 12, 7, 0, Math.PI * 2);
+            ctx.fill();
+
+            ctx.fillStyle = '#0f172a';
+            ctx.beginPath();
+            ctx.arc(54, 12, 3.5, 0, Math.PI * 2);
+            ctx.fill();
+
+            ctx.fillStyle = '#ffffff';
+            ctx.beginPath();
+            ctx.arc(55.5, 10.5, 1.5, 0, Math.PI * 2);
+            ctx.fill();
+
+            // Smile Mouth
+            ctx.strokeStyle = '#0f172a';
+            ctx.lineWidth = 2.5;
+            ctx.beginPath();
+            ctx.arc(52, 20, 7, 0.1, Math.PI * 0.7);
+            ctx.stroke();
+
+            // Cheek Rosy Glow
+            ctx.fillStyle = 'rgba(251, 113, 133, 0.4)';
+            ctx.beginPath();
+            ctx.arc(43, 22, 4, 0, Math.PI * 2);
+            ctx.fill();
+
+            ctx.restore();
+        }
+
+        function drawShell() {
+            if (!currentShell) return;
+            ctx.save();
+            currentShell.floatOffset = Math.sin(Date.now() * 0.005) * 6;
+            const drawY = currentShell.y + currentShell.floatOffset;
+
+            ctx.translate(currentShell.x, drawY);
+
+            ctx.shadowColor = '#fde047';
+            ctx.shadowBlur = 15;
+
+            // Shell Body
+            ctx.fillStyle = '#f43f5e';
+            ctx.beginPath();
+            ctx.arc(20, 20, 18, Math.PI, Math.PI * 2);
+            ctx.lineTo(30, 32);
+            ctx.lineTo(10, 32);
+            ctx.closePath();
+            ctx.fill();
+
+            // Shell Ribs
+            ctx.strokeStyle = '#fecdd3';
+            ctx.lineWidth = 2;
+            ctx.beginPath();
+            ctx.moveTo(20, 30);
+            ctx.lineTo(20, 5);
+            ctx.moveTo(20, 30);
+            ctx.lineTo(10, 8);
+            ctx.moveTo(20, 30);
+            ctx.lineTo(30, 8);
+            ctx.stroke();
+
+            // Badge Number
+            ctx.shadowBlur = 0;
+            ctx.fillStyle = '#fef08a';
+            ctx.beginPath();
+            ctx.arc(20, 18, 9, 0, Math.PI * 2);
+            ctx.fill();
+
+            ctx.fillStyle = '#881337';
+            ctx.font = 'bold 12px Quicksand, sans-serif';
+            ctx.textAlign = 'center';
+            ctx.textBaseline = 'middle';
+            ctx.fillText(currentCommandIdx + 1, 20, 19);
+
+            ctx.restore();
+        }
+
+        // Draw Octopus Enemy
+        function drawOctopuses() {
+            octopuses.forEach(oct => {
+                ctx.save();
+                ctx.translate(oct.x, oct.y);
+
+                // Body Head
+                ctx.fillStyle = '#a855f7';
+                ctx.beginPath();
+                ctx.arc(0, 0, oct.radius, Math.PI, 0);
+                ctx.quadraticCurveTo(oct.radius, oct.radius, 0, oct.radius);
+                ctx.quadraticCurveTo(-oct.radius, oct.radius, -oct.radius, 0);
+                ctx.fill();
+
+                // Eyes
+                ctx.fillStyle = '#ffffff';
+                ctx.beginPath();
+                ctx.arc(-7, -2, 5, 0, Math.PI * 2);
+                ctx.arc(7, -2, 5, 0, Math.PI * 2);
+                ctx.fill();
+
+                ctx.fillStyle = '#0f172a';
+                ctx.beginPath();
+                ctx.arc(-7, -2, 2.5, 0, Math.PI * 2);
+                ctx.arc(7, -2, 2.5, 0, Math.PI * 2);
+                ctx.fill();
+
+                // Animated Tentacles
+                ctx.strokeStyle = '#9333ea';
+                ctx.lineWidth = 4;
+                ctx.lineCap = 'round';
+                oct.tentaclePhase += 0.08;
+
+                for (let i = -3; i <= 3; i += 2) {
+                    ctx.beginPath();
+                    ctx.moveTo(i * 5, oct.radius - 2);
+                    const wave = Math.sin(oct.tentaclePhase + i) * 8;
+                    ctx.quadraticCurveTo(i * 6 + wave, oct.radius + 15, i * 7, oct.radius + 28);
+                    ctx.stroke();
+                }
+
+                ctx.restore();
+            });
+        }
+
+        // Draw Small Fish Swarm
+        function drawFishSwarms() {
+            fishSwarms.forEach(swarm => {
+                ctx.save();
+                ctx.fillStyle = '#f97316'; // Cute Orange Fish
+
+                for (let i = 0; i < swarm.count; i++) {
+                    const fx = swarm.x + (i % 3) * 22;
+                    const fy = swarm.y + Math.floor(i / 3) * 18 + Math.sin(Date.now() * 0.005 + i) * 4;
+
+                    // Fish Body
+                    ctx.beginPath();
+                    ctx.ellipse(fx, fy, 10, 6, 0, 0, Math.PI * 2);
+                    ctx.fill();
+
+                    // Tail
+                    ctx.beginPath();
+                    ctx.moveTo(fx + 8, fy);
+                    ctx.lineTo(fx + 16, fy - 6);
+                    ctx.lineTo(fx + 16, fy + 6);
+                    ctx.closePath();
+                    ctx.fill();
+
+                    // Eye
+                    ctx.fillStyle = '#ffffff';
+                    ctx.beginPath();
+                    ctx.arc(fx - 5, fy - 2, 2, 0, Math.PI * 2);
+                    ctx.fill();
+                    ctx.fillStyle = '#f97316';
+                }
+
+                ctx.restore();
+            });
+        }
+
+        // Draw Electric Eel
+        function drawElectricEels() {
+            electricEels.forEach(eel => {
+                ctx.save();
+                eel.waveOffset += 0.12;
+
+                ctx.strokeStyle = eel.isElectric ? '#facc15' : '#14b8a6';
+                ctx.lineWidth = 8;
+                ctx.lineCap = 'round';
+
+                ctx.beginPath();
+                for (let i = 0; i <= eel.length; i += 5) {
+                    const wave = Math.sin(eel.waveOffset + i * 0.1) * 10;
+                    if (i === 0) {
+                        ctx.moveTo(eel.x + i, eel.y + wave);
+                    } else {
+                        ctx.lineTo(eel.x + i, eel.y + wave);
+                    }
+                }
+                ctx.stroke();
+
+                // Eel Head
+                const headWave = Math.sin(eel.waveOffset) * 10;
+                ctx.fillStyle = eel.isElectric ? '#fde047' : '#0d9488';
+                ctx.beginPath();
+                ctx.arc(eel.x, eel.y + headWave, 7, 0, Math.PI * 2);
+                ctx.fill();
+
+                // Angry Eye
+                ctx.fillStyle = '#ef4444';
+                ctx.beginPath();
+                ctx.arc(eel.x - 2, eel.y + headWave - 2, 2.5, 0, Math.PI * 2);
+                ctx.fill();
+
+                // Sparkles Effect when Electric
+                if (eel.isElectric) {
+                    ctx.strokeStyle = '#ffffff';
+                    ctx.lineWidth = 2;
+                    ctx.beginPath();
+                    ctx.moveTo(eel.x - 10, eel.y + headWave - 10);
+                    ctx.lineTo(eel.x - 4, eel.y + headWave - 4);
+                    ctx.moveTo(eel.x + eel.length + 5, eel.y + 5);
+                    ctx.lineTo(eel.x + eel.length + 12, eel.y + 10);
+                    ctx.stroke();
+                }
+
+                ctx.restore();
+            });
+        }
+
+        // --- UPDATE & COLLISION LOGIC ---
+
+        function handlePlayerHit() {
+            if (shark.invincibleTimer > 0) return;
+
+            lives--;
+            playSound('hit');
+            updateLivesDisplay();
+
+            shark.invincibleTimer = 90; // Invincible frames (~1.5s)
+
+            if (lives <= 0) {
+                isGameRunning = false;
+                document.getElementById('gameover-screen').classList.remove('hidden');
+            }
+        }
+
+        function update() {
+            if (!isGameRunning || isQuizActive) return;
+
+            if (shark.invincibleTimer > 0) {
+                shark.invincibleTimer--;
+            }
+
+            // 4-Way Keyboard Movement
+            if (keys['ArrowUp'] || keys['KeyW']) shark.y -= shark.speed;
+            if (keys['ArrowDown'] || keys['KeyS']) shark.y += shark.speed;
+            if (keys['ArrowLeft'] || keys['KeyA']) shark.x -= shark.speed;
+            if (keys['ArrowRight'] || keys['KeyD']) shark.x += shark.speed;
+
+            // Touch Drag Smooth Follow
+            if (shark.targetX !== undefined && shark.targetY !== undefined) {
+                shark.x += (shark.targetX - shark.x) * 0.12;
+                shark.y += (shark.targetY - shark.y) * 0.12;
+            }
+
+            // Screen Bounds Constraints
+            shark.x = Math.max(10, Math.min(canvas.width - shark.width - 10, shark.x));
+            shark.y = Math.max(10, Math.min(canvas.height - shark.height - 35, shark.y));
+
+            // Shell Logic
+            if (currentShell) {
+                currentShell.x -= 2.0;
+                if (currentShell.x < -50) {
+                    currentShell.x = canvas.width + 40;
+                    currentShell.y = Math.random() * (canvas.height - 120) + 40;
+                }
+
+                // Shell Collision
+                const shellCenterY = currentShell.y + currentShell.floatOffset + 18;
+                if (
+                    shark.x + shark.width > currentShell.x &&
+                    shark.x < currentShell.x + currentShell.width &&
+                    shark.y + shark.height > shellCenterY - 18 &&
+                    shark.y < shellCenterY + 18
+                ) {
+                    playSound('collect');
+                    triggerQuiz();
+                }
+            }
+
+            // Octopus Movement & Collision
+            octopuses.forEach(oct => {
+                oct.y += oct.speedY;
+                if (oct.y < oct.minY || oct.y > oct.maxY) oct.speedY *= -1;
+
+                // Collision Check
+                const dist = Math.hypot((shark.x + 35) - oct.x, (shark.y + 20) - oct.y);
+                if (dist < oct.radius + 22) {
+                    handlePlayerHit();
+                }
+            });
+
+            // Fish Swarm Movement & Collision
+            fishSwarms.forEach(swarm => {
+                swarm.x -= swarm.speed;
+                if (swarm.x < -120) {
+                    swarm.x = canvas.width + Math.random() * 200;
+                    swarm.y = Math.random() * (canvas.height - 140) + 40;
+                }
+            });
+
+            // Electric Eel Logic (The only dangerous obstacle!)
+            electricEels.forEach(eel => {
+                eel.x -= eel.speed;
+                eel.timer++;
+
+                // Electric shock state always active for clear hazard warning
+                eel.isElectric = true;
+
+                if (eel.x < -120) {
+                    eel.x = canvas.width + Math.random() * 250;
+                    eel.y = Math.random() * (canvas.height - 120) + 40;
+                }
+
+                if (
+                    shark.x + shark.width > eel.x &&
+                    shark.x < eel.x + eel.length &&
+                    shark.y + shark.height > eel.y - 15 &&
+                    shark.y < eel.y + 15
+                ) {
+                    handlePlayerHit();
+                }
+            });
+        }
+
+        function gameLoop() {
+            drawBackground();
+            if (isGameRunning) {
+                update();
+                drawShell();
+                drawOctopuses();
+                drawFishSwarms();
+                drawElectricEels();
+                drawShark();
+            }
+            requestAnimationFrame(gameLoop);
+        }
+
+        function triggerQuiz() {
+            isQuizActive = true;
+            const command = COMMANDS_DATA[currentCommandIdx];
+
+            document.getElementById('quiz-category').innerText = `Kuis Perintah Gereja Ke-${command.num}`;
+            document.getElementById('quiz-question').innerText = command.question;
+            document.getElementById('quiz-feedback').innerText = '';
+
+            const optionsContainer = document.getElementById('quiz-options');
+            optionsContainer.innerHTML = '';
+
+            command.options.forEach((opt, idx) => {
+                const btn = document.createElement('button');
+                btn.className = "p-3 md:p-4 rounded-xl bg-cyan-900/80 hover:bg-cyan-700/90 border border-cyan-500/40 text-left text-sm md:text-base font-semibold text-slate-100 transition transform active:scale-95 flex items-center space-x-3";
+                btn.innerHTML = `
+                    <span class="w-7 h-7 rounded-full bg-cyan-700 flex items-center justify-center font-bold text-yellow-300 text-xs shrink-0">${String.fromCharCode(65 + idx)}</span>
+                    <span>${opt}</span>
+                `;
+                btn.onclick = () => checkAnswer(idx, command.correct);
+                optionsContainer.appendChild(btn);
+            });
+
+            document.getElementById('quiz-modal').classList.remove('hidden');
+        }
+
+        function checkAnswer(selected, correct) {
+            const feedback = document.getElementById('quiz-feedback');
+            const options = document.getElementById('quiz-options').children;
+
+            for (let btn of options) {
+                btn.disabled = true;
+                btn.classList.add('opacity-70');
+            }
+
+            if (selected === correct) {
+                playSound('correct');
+                feedback.className = "h-8 font-bold text-center text-lg text-emerald-400 animate-bounce";
+                feedback.innerText = "✨ Benar sekali! Kamu hebat! +20 Skor";
+                options[selected].classList.remove('bg-cyan-900/80', 'opacity-70');
+                options[selected].classList.add('bg-emerald-600', 'border-emerald-300');
+
+                score += 20;
+                collectedCount++;
+                currentCommandIdx++;
+
+                document.getElementById('score-text').innerText = `Skor: ${score}`;
+                document.getElementById('collected-text').innerText = `Kerang: ${collectedCount}/5`;
+
+                setTimeout(() => {
+                    document.getElementById('quiz-modal').classList.add('hidden');
+                    isQuizActive = false;
+
+                    if (currentCommandIdx < COMMANDS_DATA.length) {
+                        document.getElementById('target-command-badge').innerText = currentCommandIdx + 1;
+                        spawnShell();
+                    } else {
+                        showVictory();
+                    }
+                }, 1600);
+
+            } else {
+                playSound('wrong');
+                feedback.className = "h-8 font-bold text-center text-lg text-rose-400";
+                feedback.innerText = "❌ Kurang tepat, ayo baca lagi ya!";
+                options[selected].classList.remove('bg-cyan-900/80', 'opacity-70');
+                options[selected].classList.add('bg-rose-600', 'border-rose-300');
+                options[correct].classList.remove('opacity-70');
+                options[correct].classList.add('bg-emerald-600', 'border-emerald-300');
+
+                setTimeout(() => {
+                    document.getElementById('quiz-modal').classList.add('hidden');
+                    isQuizActive = false;
+                    spawnShell();
+                }, 2000);
+            }
+        }
+
+        function startGame() {
+            document.getElementById('start-screen').classList.add('hidden');
+            document.getElementById('gameover-screen').classList.add('hidden');
+
+            score = 0;
+            lives = 3;
+            collectedCount = 0;
+            currentCommandIdx = 0;
+
+            document.getElementById('score-text').innerText = `Skor: ${score}`;
+            document.getElementById('collected-text').innerText = `Kerang: 0/5`;
+            document.getElementById('target-command-badge').innerText = 1;
+            updateLivesDisplay();
+
+            shark.x = 80;
+            shark.y = canvas.height / 2 - 20;
+            shark.targetX = undefined;
+            shark.targetY = undefined;
+            shark.invincibleTimer = 0;
+
+            isGameRunning = true;
+            isQuizActive = false;
+
+            spawnEntities();
+        }
+
+        function showVictory() {
+            isGameRunning = false;
+            document.getElementById('final-score').innerText = score;
+            document.getElementById('win-screen').classList.remove('hidden');
+        }
+
+        function restartGame() {
+            document.getElementById('win-screen').classList.add('hidden');
+            startGame();
+        }
+
+        function openInfoModal() {
+            document.getElementById('info-modal').classList.remove('hidden');
+        }
+
+        function closeInfoModal() {
+            document.getElementById('info-modal').classList.add('hidden');
+        }
+
+        window.onload = function() {
+            resizeCanvas();
+            initEnvironment();
+            gameLoop();
+        };
+    </script>
+</body>
+</html>
